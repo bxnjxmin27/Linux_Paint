@@ -1,0 +1,19 @@
+node_modules/
+out/
+release/
+dist/
+*.log
+.DS_Store
+/tmp/
+
+# local test artefacts
+coverage/
+playwright-report/
+test-results/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# local QA harness (not part of the app)
+scripts/test-*.mjs
+scripts/final-shots.mjs
