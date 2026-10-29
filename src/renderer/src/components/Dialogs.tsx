@@ -7,7 +7,7 @@ import { PaintLogo } from './Glyphs'
 import { get2d } from '../engine/canvas'
 import { PALETTE } from '../engine/tools'
 
-function DialogShell({
+export function DialogShell({
   title,
   children,
   actions,

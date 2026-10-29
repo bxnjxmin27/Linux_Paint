@@ -37,5 +37,6 @@ export interface PaintApi {
   pathForFile: (file: File) => string
   getVersion: () => Promise<string>
   openPrint: (dataUrl: string) => Promise<void>
+  showError: (message: string, detail?: string) => Promise<void>
   onOpenFile: (cb: (path: string) => void) => () => void
 }

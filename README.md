@@ -2,9 +2,11 @@
 
 Ein Nachbau von **Microsoft Paint (Windows 11)** für Linux – mit Fluent-Oberfläche, Ribbon, Ebenen, Transparenz, Pinseln, Formen, Text, Auswahlwerkzeugen und Dateiimport/-export.
 
-**GitHub:** [bxnjxmin27/Linux_Paint](https://github.com/bxnjxmin27/Linux_Paint) · **Releases:** [v0.1.0](https://github.com/bxnjxmin27/Linux_Paint/releases/tag/v0.1.0)
+**GitHub:** [bxnjxmin27/Linux_Paint](https://github.com/bxnjxmin27/Linux_Paint) · **Releases:** [v0.2.0](https://github.com/bxnjxmin27/Linux_Paint/releases/tag/v0.2.0)
 
 ![Paint für Linux](docs/screenshot-de.png)
+
+![PDF-Import mit Seitenauswahl](docs/screenshot-pdf.png)
 
 > Inspiriert vom Windows-11-Paint. Kein offizielles Microsoft-Produkt, kein Microsoft-Code und keine Microsoft-Dienste.
 
@@ -18,9 +20,19 @@ Ein Nachbau von **Microsoft Paint (Windows 11)** für Linux – mit Fluent-Oberf
 - **Text:** Textfeld, Systemschriften, Größe, Fett/Kursiv/Unterstrichen, Ausrichtung, Textfarbe, Hintergrund, Zeilenumbruch
 - **Ebenen:** Hinzufügen, Löschen, Duplizieren, Umbenennen, Sichtbarkeit, Reihenfolge (Drag & Drop), Nach unten zusammenführen, Thumbnails, Transparenz
 - **Bild:** Größe ändern, Neigen, Canvas-Größe, Drehen, Spiegeln, Farben umkehren, DPI/Eigenschaften
-- **Dateien:** Öffnen, Speichern, Speichern unter als **PNG, JPEG, BMP, GIF, TIFF**, Import auf Canvas, Drucken, Zuletzt geöffnet, Drag & Drop, Datei-Assoziationen
+- **Dateien:** Öffnen/Speichern als **PNG, JPEG, WebP, BMP, GIF, TIFF, PDF**, Import auf Canvas, Drucken, Zuletzt geöffnet, Drag & Drop, Datei-Assoziationen
+- **PDF:** mehrseitige PDFs mit Seitenvorschau, Seitenauswahl und wählbarer Auflösung (72–288 DPI) als Bild öffnen und mit allen Werkzeugen übermalen; Export als einseitiges PDF
+- **Weitere Formate:** SVG, HEIC/HEIF, AVIF, ICO und TGA werden ebenfalls geöffnet und in bearbeitbare Pixel umgewandelt
 - **Ansicht:** 10–800 % Zoom, Fit, 100 %, Vollbild, Lineale, Pixelraster, Statusleiste
 - **Deutsch/Englisch** umschaltbar
+
+## Unterstützte Formate
+
+| Import | Export |
+|---|---|
+| PNG, JPEG, WebP, AVIF, GIF, BMP, ICO, TIFF, SVG, PDF, HEIC/HEIF, TGA | PNG, JPEG, WebP, BMP, GIF, TIFF, PDF |
+
+PDF-Dateien werden seitenweise als Bild gerastert. Vektortext und PDF-Objekte bleiben dabei nicht editierbar; gespeichert wird die aktuelle Seite als einseitiges PDF oder als Bild.
 
 ## 1:1 – was heißt das konkret?
 
@@ -32,6 +44,7 @@ Bewusst **nicht** enthalten:
 - Microsoft-Konto, Cloud, Windows-Snap-Layouts, „Als Desktop-Hintergrund“
 - Freies Drehen von bereits gerasterten Formen/Texten (Auswahlen lassen sich frei drehen)
 - Exakte Windows-Metadaten (JPEG-EXIF, ICC-Profile, Druckertreiber)
+- Bearbeiten von PDF-Vektorebenen oder mehrseitiges PDF-Schreiben (PDFs werden seitenweise rasterisiert)
 
 ## Entwicklung
 
@@ -56,9 +69,9 @@ npm run dist:rpm
 
 Ergebnisse liegen in `release/`:
 
-- `Paint-0.1.0.AppImage`
-- `paint_0.1.0_amd64.deb`
-- `paint-0.1.0.x86_64.rpm`
+- `Paint-0.2.0.AppImage`
+- `paint_0.2.0_amd64.deb`
+- `paint-0.2.0.x86_64.rpm`
 
 Auf Fedora 44 benötigt der Debian/RPM-Schritt von electron-builder zusätzlich `libxcrypt-compat` (für das mitgelieferte fpm/Ruby):
 
@@ -70,14 +83,14 @@ Die fertigen Pakete gibt es unter **[Releases](https://github.com/bxnjxmin27/Lin
 
 ```bash
 # AppImage
-chmod +x Paint-0.1.0.AppImage
-./Paint-0.1.0.AppImage
+chmod +x Paint-0.2.0.AppImage
+./Paint-0.2.0.AppImage
 
 # Fedora / openSUSE
-sudo dnf install ./paint-0.1.0.x86_64.rpm
+sudo dnf install ./paint-0.2.0.x86_64.rpm
 
 # Debian / Ubuntu
-sudo apt install ./paint_0.1.0_amd64.deb
+sudo apt install ./paint_0.2.0_amd64.deb
 ```
 
 ## Tastenkürzel (Auswahl)

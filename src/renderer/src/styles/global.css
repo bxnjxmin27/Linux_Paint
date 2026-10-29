@@ -1759,3 +1759,119 @@ input[type='color'].color-preview::-webkit-color-swatch {
   border-radius: 2px;
 }
 
+
+/* PDF import */
+
+.pdf-import-name {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pdf-import-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 205px;
+  gap: 18px;
+  align-items: start;
+}
+
+.pdf-preview {
+  min-height: 260px;
+  max-height: 350px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: #f1f1f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.pdf-preview canvas {
+  display: block;
+  max-width: 100%;
+  max-height: 348px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+}
+
+.pdf-preview-message {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: #f7f7f7;
+}
+
+.pdf-preview-message.error {
+  color: var(--danger);
+}
+
+.pdf-import-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pdf-import-controls .form-row {
+  margin: 0;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pdf-import-controls .form-row > label {
+  width: auto;
+  font-size: 12px;
+}
+
+.pdf-page-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pdf-page-row .input {
+  width: 62px;
+}
+
+.pdf-step {
+  min-width: 28px;
+  width: 28px;
+  height: 30px;
+  padding: 0;
+  font-size: 16px;
+}
+
+.pdf-page-count {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.pdf-size {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.pdf-source-note {
+  margin: 4px 0 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--text-tertiary);
+}
+
+@media (max-width: 640px) {
+  .pdf-import-grid {
+    grid-template-columns: 1fr;
+  }
+}

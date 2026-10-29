@@ -14,6 +14,7 @@ export function StatusBar(): React.ReactElement | null {
   const docHeight = useUI((s) => s.docHeight)
   const zoom = useUI((s) => s.view.zoom)
   const selection = useUI((s) => s.selection)
+  const sourceLabel = useUI((s) => s.sourceLabel)
   const cursor = useCursor()
   const [zoomMenu, setZoomMenu] = useState<DOMRect | null>(null)
   const percentRef = useRef<HTMLButtonElement>(null)
@@ -51,8 +52,8 @@ export function StatusBar(): React.ReactElement | null {
         )}
       </div>
       <div className="status-center">
-        <span className="status-size">
-          {docWidth} × {docHeight}px
+        <span className="status-size" title={sourceLabel ?? undefined}>
+          {docWidth} × {docHeight}px{sourceLabel ? ` · ${sourceLabel}` : ''}
         </span>
       </div>
       <div className="status-right">

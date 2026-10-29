@@ -1,6 +1,6 @@
 {
   "name": "paint-linux",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A Windows 11 Paint recreation for Linux",
   "main": "./out/main/index.js",
   "author": {
@@ -20,7 +20,6 @@
     "dist:deb": "electron-vite build && electron-builder --linux deb",
     "dist:rpm": "electron-vite build && electron-builder --linux rpm"
   },
-  "dependencies": {},
   "devDependencies": {
     "@fluentui/react-icons": "^2.0.344",
     "@fontpkg/segoe-ui": "^5.67.0",
@@ -32,9 +31,13 @@
     "electron-builder": "^26.18.0",
     "electron-vite": "^6.0.0",
     "gifenc": "^1.0.3",
+    "heic2any": "^0.0.4",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^6.4.299",
     "playwright-core": "^1.64.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
+    "tga-js": "^1.1.1",
     "typescript": "^7.0.2",
     "utif": "^3.1.0",
     "vite": "^8.3.5",
@@ -81,7 +84,7 @@
       "icon": "build/icon.png",
       "executableName": "paint",
       "synopsis": "Windows 11 Paint rebuilt for Linux",
-      "description": "A Windows 11 Paint recreation for Linux, with layers, brushes, shapes, text, selection and transparency.",
+      "description": "A Windows 11 Paint recreation for Linux with layers, brushes, shapes, text, PDF/SVG/HEIC import, selection and transparency.",
       "desktop": {
         "entry": {
           "Name": "Paint",
@@ -93,10 +96,17 @@
       "mimeTypes": [
         "image/png",
         "image/jpeg",
-        "image/bmp",
+        "image/webp",
+        "image/avif",
         "image/gif",
+        "image/bmp",
+        "image/x-icon",
         "image/tiff",
-        "image/webp"
+        "image/svg+xml",
+        "application/pdf",
+        "image/heic",
+        "image/heif",
+        "image/x-tga"
       ],
       "maintainer": "bxnjxmin27 <bxnjxmin27@users.noreply.github.com>",
       "syncDesktopName": true

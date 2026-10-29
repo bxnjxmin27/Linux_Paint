@@ -11,7 +11,10 @@ import {
 } from './canvas'
 import { useUI, type LayerMeta } from '../state/store'
 import { useText, type TextStyle, type TextSession } from '../state/text'
-import { decodeImageFile, encodeCanvas, formatFromFilename, defaultExtension, type SaveFormat } from './format'
+import { encodeCanvas, formatFromFilename, defaultExtension, type SaveFormat } from './format'
+import { decodeAnyFile, isSavableSource } from './decode'
+import { askPdfPage } from '../state/pdfImport'
+import { renderPdfPage } from './pdf'
 import { drawShape, type ShapeOptions } from './shapes'
 import type { ShapeType, ToolId } from './tools'
 
@@ -45,8 +48,10 @@ export class PaintController {
   selection: Selection | null = null
   floating: FloatingSelection | null = null
   filePath: string | null = null
+  documentName: string | null = null
   format: SaveFormat = 'png'
   dirty = false
+  sourceLabel: string | null = null
   repaint: (() => void) | null = null
 
   private pixelEdit: { layerId: string; before: ImageData } | null = null
@@ -58,8 +63,9 @@ export class PaintController {
   }
 
   private currentFileName(): string {
-    if (!this.filePath) return useUI.getState().language === 'de' ? 'Unbenannt' : 'Untitled'
-    return this.filePath.split('/').pop() ?? this.filePath
+    if (this.filePath) return this.filePath.split('/').pop() ?? this.filePath
+    if (this.documentName) return this.documentName
+    return useUI.getState().language === 'de' ? 'Unbenannt' : 'Untitled'
   }
 
   syncSelection(): void {
@@ -84,6 +90,7 @@ export class PaintController {
       docHeight: this.doc.height,
       dpi: this.doc.dpi,
       dirty: this.dirty,
+      sourceLabel: this.sourceLabel,
       fileName,
       filePath: this.filePath,
       format: this.format,
@@ -229,7 +236,9 @@ export class PaintController {
     this.doc.dpi = 96
     this.doc.layers[0].name = useUI.getState().language === 'de' ? 'Ebene 1' : 'Layer 1'
     this.filePath = null
+    this.documentName = null
     this.format = 'png'
+    this.sourceLabel = null
     this.dirty = false
     this.syncSelection()
     this.syncMeta()
@@ -244,7 +253,9 @@ export class PaintController {
     this.doc.loadCanvas(canvas)
     this.doc.layers[0].name = useUI.getState().language === 'de' ? 'Ebene 1' : 'Layer 1'
     this.filePath = path
+    this.documentName = name
     this.format = path ? formatFromFilename(path) : 'png'
+    this.sourceLabel = null
     this.dirty = false
     this.syncSelection()
     this.syncMeta()
@@ -257,16 +268,63 @@ export class PaintController {
     const api = getApi()
     const result = await api.openImage()
     if (!result) return
-    const canvas = await decodeImageFile(result.data, result.name)
-    this.loadCanvas(canvas, result.path, result.name)
+    await this.openData(result.data, result.name, result.path)
   }
 
   async openPath(path: string): Promise<void> {
     const api = getApi()
-    const data = await api.readFile(path)
-    const name = path.split('/').pop() ?? path
-    const canvas = await decodeImageFile(data, name)
-    this.loadCanvas(canvas, path, name)
+    try {
+      const data = await api.readFile(path)
+      const name = path.split('/').pop() ?? path
+      await this.openData(data, name, path)
+    } catch (err) {
+      await api.showError('Die Datei konnte nicht geöffnet werden.', String(err))
+    }
+  }
+
+  async openData(data: Uint8Array, name: string, path: string | null): Promise<boolean> {
+    const api = getApi()
+    try {
+      const decoded = await decodeAnyFile(data, name)
+      if (decoded.kind === 'pdf' && decoded.pdfData && decoded.pageCount) {
+        const choice = await askPdfPage({
+          data: decoded.pdfData,
+          name,
+          pageCount: decoded.pageCount,
+          width: decoded.pdfWidth ?? 595,
+          height: decoded.pdfHeight ?? 842
+        })
+        if (!choice) return false
+        const canvas = await renderPdfPage(decoded.pdfData, choice.page, choice.scale)
+        this.loadCanvas(canvas, null, name)
+        this.doc.dpi = Math.round(72 * choice.scale)
+        this.filePath = null
+        this.format = 'png'
+        this.sourceLabel = useUI.getState().language === 'de'
+          ? `PDF · Seite ${choice.page}/${decoded.pageCount}`
+          : `PDF · page ${choice.page}/${decoded.pageCount}`
+        if (path) useUI.getState().addRecentFile(path)
+        this.syncMeta()
+        useUI.getState().fitToWindow()
+        return true
+      }
+      if (!decoded.canvas) throw new Error('Das Format wird nicht unterstützt')
+      this.loadCanvas(decoded.canvas, isSavableSource(name) ? path : null, name)
+      if (!isSavableSource(name)) {
+        this.format = 'png'
+        const ext = name.split('.').pop()?.toUpperCase() ?? ''
+        this.sourceLabel = ext === 'SVG' ? 'SVG' : ext === 'HEIC' || ext === 'HEIF' ? 'HEIC' : ext === 'TGA' ? 'TGA' : ext === 'ICO' ? 'ICO' : ext === 'AVIF' ? 'AVIF' : null
+        if (path) useUI.getState().addRecentFile(path)
+        this.syncMeta()
+      }
+      return true
+    } catch (err) {
+      await api.showError(
+        'Die Datei konnte nicht geöffnet werden.',
+        `${name}\n\nUnterstützt werden PNG, JPEG, WebP, AVIF, GIF, BMP, ICO, TIFF, SVG, PDF, HEIC/HEIF und TGA.\n\n${String(err)}`
+      )
+      return false
+    }
   }
 
   getComposite(): HTMLCanvasElement {
@@ -283,7 +341,7 @@ export class PaintController {
 
   async save(): Promise<boolean> {
     if (!this.filePath) return this.saveAs('png')
-    const bytes = await encodeCanvas(this.getExportCanvas(), this.format)
+    const bytes = await encodeCanvas(this.getExportCanvas(), this.format, this.doc.dpi)
     await getApi().writeFile(this.filePath, bytes)
     this.dirty = false
     this.syncMeta()
@@ -299,9 +357,10 @@ export class PaintController {
     if (!res) return false
     let path = res.path
     if (!/\.[^.\\/]+$/.test(path)) path = `${path}.${ext}`
-    const bytes = await encodeCanvas(this.getExportCanvas(), format)
+    const bytes = await encodeCanvas(this.getExportCanvas(), format, this.doc.dpi)
     await getApi().writeFile(path, bytes)
     this.filePath = path
+    this.documentName = path.split('/').pop() ?? path
     this.format = format
     this.dirty = false
     this.syncMeta()
@@ -861,6 +920,11 @@ export class PaintController {
   importImage(canvas: HTMLCanvasElement): void {
     this.settle()
     this.snapshotTransaction('Bild importieren', () => {
+      const width = Math.max(this.doc.width, canvas.width)
+      const height = Math.max(this.doc.height, canvas.height)
+      if (width !== this.doc.width || height !== this.doc.height) {
+        this.doc.resizeCanvas(width, height, 'top-left')
+      }
       const layer = this.doc.addLayer()
       layer.name = useUI.getState().language === 'de' ? `Ebene ${this.doc.layers.length}` : `Layer ${this.doc.layers.length}`
       layer.ctx.drawImage(canvas, 0, 0)

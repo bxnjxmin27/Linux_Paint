@@ -8,6 +8,10 @@
 - **Fluent UI System Icons** (`@fluentui/react-icons`) – MIT License – https://github.com/microsoft/fluentui-system-icons
 - **gifenc** – MIT License – https://github.com/mattdesl/gifenc
 - **UTIF.js** – MIT License – https://github.com/photopea/UTIF.js
+- **PDF.js** (`pdfjs-dist`) – Apache-2.0 – https://github.com/mozilla/pdf.js
+- **pdf-lib** – MIT – https://github.com/Hopding/pdf-lib
+- **heic2any** – MIT – https://github.com/alexcorvi/heic2any
+- **tga-js** – MIT – https://github.com/vthibault/tga.js
 - **Vite / electron-vite** – MIT License
 
 ## Schriften

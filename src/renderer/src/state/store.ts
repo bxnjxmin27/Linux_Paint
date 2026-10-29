@@ -47,6 +47,7 @@ export interface UIState {
   docHeight: number
   dpi: number
   dirty: boolean
+  sourceLabel: string | null
   fileName: string
   filePath: string | null
   format: SaveFormat
@@ -90,6 +91,7 @@ export interface UIState {
     docHeight: number
     dpi: number
     dirty: boolean
+    sourceLabel: string | null
     fileName: string
     filePath: string | null
     format: SaveFormat
@@ -164,6 +166,7 @@ export const useUI = create<UIState>((set, get) => ({
   docHeight: 562,
   dpi: 96,
   dirty: false,
+  sourceLabel: null,
   fileName: 'Unbenannt',
   filePath: null,
   format: 'png',

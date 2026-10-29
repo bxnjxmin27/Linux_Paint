@@ -51,9 +51,9 @@ export function CommandBar(): React.ReactElement {
       type: 'submenu',
       label: t('saveAs'),
       icon: 'arrowDown',
-      items: (['png', 'jpg', 'bmp', 'gif', 'tif'] as SaveFormat[]).map((format) => ({
+      items: (['png', 'jpg', 'webp', 'bmp', 'gif', 'tif', 'pdf'] as SaveFormat[]).map((format) => ({
         type: 'item' as const,
-        label: format === 'jpg' ? 'JPEG' : format === 'tif' ? 'TIFF' : format.toUpperCase(),
+        label: format === 'jpg' ? 'JPEG' : format === 'tif' ? 'TIFF' : format === 'webp' ? 'WebP' : format.toUpperCase(),
         onClick: () => void saveAs(format)
       }))
     },

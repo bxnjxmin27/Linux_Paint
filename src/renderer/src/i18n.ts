@@ -159,7 +159,16 @@ const de: Dict = {
   discard: 'Nicht speichern',
   back: 'Zurück',
   colorPreview: 'Vorschau',
-  selectColor: 'Farbe auswählen'
+  selectColor: 'Farbe auswählen',
+  pdfImportTitle: 'PDF importieren',
+  pdfPage: 'Seite',
+  pdfOf: 'von',
+  pdfResolution: 'Auflösung',
+  pdfPreview: 'Vorschau',
+  pdfLoading: 'PDF-Vorschau wird geladen …',
+  pdfLoadError: 'Die PDF-Vorschau konnte nicht geladen werden.',
+  pdfOpen: 'Seite öffnen',
+  pdfSourceNote: 'PDF-Seiten werden als Bild geöffnet und können mit allen Werkzeugen bearbeitet werden.'
 }
 
 const en: Dict = {
@@ -319,7 +328,16 @@ const en: Dict = {
   discard: "Don't save",
   back: 'Back',
   colorPreview: 'Preview',
-  selectColor: 'Select color'
+  selectColor: 'Select color',
+  pdfImportTitle: 'Import PDF',
+  pdfPage: 'Page',
+  pdfOf: 'of',
+  pdfResolution: 'Resolution',
+  pdfPreview: 'Preview',
+  pdfLoading: 'Loading PDF preview …',
+  pdfLoadError: 'The PDF preview could not be loaded.',
+  pdfOpen: 'Open page',
+  pdfSourceNote: 'PDF pages are opened as images and can be edited with all tools.'
 }
 
 const dicts: Record<Language, Dict> = { de, en }

@@ -22,7 +22,7 @@ function imagePathFromArgs(argv: string[]): string | null {
         continue
       }
     }
-    if (/\.(png|jpe?g|bmp|gif|tiff?|webp)$/i.test(arg)) return arg
+    if (/\.(png|jpe?g|webp|avif|gif|bmp|ico|tiff?|svg|pdf|heic|heif|tga)$/i.test(arg)) return arg
   }
   return null
 }
@@ -101,7 +101,16 @@ function clampWindowToDisplay(state: StoredWindowState): StoredWindowState {
 }
 
 const IMAGE_FILTERS = [
-  { name: 'Bilder', extensions: ['png', 'jpg', 'jpeg', 'bmp', 'gif', 'tif', 'tiff', 'webp'] },
+  {
+    name: 'Alle unterstützten Dateien',
+    extensions: [
+      'png', 'jpg', 'jpeg', 'webp', 'avif', 'gif', 'bmp', 'ico', 'tif', 'tiff',
+      'svg', 'pdf', 'heic', 'heif', 'tga'
+    ]
+  },
+  { name: 'Bilder', extensions: ['png', 'jpg', 'jpeg', 'webp', 'avif', 'gif', 'bmp', 'ico', 'tif', 'tiff', 'heic', 'heif', 'tga'] },
+  { name: 'PDF', extensions: ['pdf'] },
+  { name: 'Vektorgrafik', extensions: ['svg', 'pdf'] },
   { name: 'Alle Dateien', extensions: ['*'] }
 ]
 
@@ -153,8 +162,8 @@ async function createWindow(): Promise<void> {
     void shell.openExternal(url)
     return { action: 'deny' }
   })
-  mainWindow.webContents.on('console-message', (_event, level, message, line, sourceId) => {
-    console.log(`[renderer:${level}] ${message} (${sourceId}:${line})`)
+  mainWindow.webContents.on('console-message', (details) => {
+    console.log(`[renderer:${details.level}] ${details.message} (${details.sourceId}:${details.lineNumber})`)
   })
   mainWindow.webContents.on('render-process-gone', (_event, details) => {
     console.error('[renderer gone]', details)
@@ -247,7 +256,9 @@ function registerIpc(): void {
       jpg: ['jpg', 'jpeg'],
       bmp: ['bmp'],
       gif: ['gif'],
-      tif: ['tif', 'tiff']
+      tif: ['tif', 'tiff'],
+      webp: ['webp'],
+      pdf: ['pdf']
     }
     const ext = extension.toLowerCase()
     const res = await dialog.showSaveDialog(mainWindow!, {
@@ -312,6 +323,14 @@ function registerIpc(): void {
   })
 
   ipcMain.handle('app:version', () => app.getVersion())
+  ipcMain.handle('dialog:error', async (_e, message: string, detail?: string) => {
+    await dialog.showMessageBox(mainWindow!, {
+      type: 'error',
+      title: 'Paint',
+      message,
+      detail
+    })
+  })
   ipcMain.handle('print:image', async (_e, dataUrl: string) => {
     const printWindow = new BrowserWindow({
       show: false,

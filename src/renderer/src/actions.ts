@@ -2,7 +2,10 @@ import { controller } from './engine/controller'
 import { useUI } from './state/store'
 import { useText } from './state/text'
 import { askUnsaved } from './state/dialog'
-import { decodeImageFile, type SaveFormat } from './engine/format'
+import { type SaveFormat } from './engine/format'
+import { decodeAnyFile } from './engine/decode'
+import { askPdfPage } from './state/pdfImport'
+import { renderPdfPage } from './engine/pdf'
 import type { ToolId } from './engine/tools'
 
 export function commitAll(): void {
@@ -68,10 +71,9 @@ export async function openDroppedFile(file: File): Promise<void> {
   try {
     const path = window.paint.pathForFile(file)
     const data = path ? await window.paint.readFile(path) : new Uint8Array(await file.arrayBuffer())
-    const canvas = await decodeImageFile(data, file.name)
-    controller.loadCanvas(canvas, path || null, file.name)
-  } catch {
-    useUI.getState().openDialog('about')
+    await controller.openData(data, file.name, path || null)
+  } catch (err) {
+    await window.paint.showError('Die Datei konnte nicht geöffnet werden.', String(err))
   }
 }
 
@@ -79,7 +81,24 @@ export function importToCanvas(): void {
   void (async () => {
     const result = await window.paint.openImage()
     if (!result) return
-    const canvas = await decodeImageFile(result.data, result.name)
-    controller.importImage(canvas)
+    try {
+      const decoded = await decodeAnyFile(result.data, result.name)
+      if (decoded.kind === 'pdf' && decoded.pdfData && decoded.pageCount) {
+        const choice = await askPdfPage({
+          data: decoded.pdfData,
+          name: result.name,
+          pageCount: decoded.pageCount,
+          width: decoded.pdfWidth ?? 595,
+          height: decoded.pdfHeight ?? 842
+        })
+        if (!choice) return
+        const canvas = await renderPdfPage(decoded.pdfData, choice.page, choice.scale)
+        controller.importImage(canvas)
+        return
+      }
+      if (decoded.canvas) controller.importImage(decoded.canvas)
+    } catch (err) {
+      await window.paint.showError('Die Datei konnte nicht importiert werden.', String(err))
+    }
   })()
 }

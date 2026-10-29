@@ -32,6 +32,7 @@ const api: PaintApi = {
   pathForFile: (file) => webUtils.getPathForFile(file),
   getVersion: () => ipcRenderer.invoke('app:version'),
   openPrint: (dataUrl) => ipcRenderer.invoke('print:image', dataUrl),
+  showError: (message, detail) => ipcRenderer.invoke('dialog:error', message, detail),
   onOpenFile: (cb) => {
     const listener = (_e: Electron.IpcRendererEvent, path: string): void => cb(path)
     ipcRenderer.on('app:open-file', listener)

@@ -2,19 +2,23 @@ import * as UTIF from 'utif'
 import { GIFEncoder, quantize, applyPalette } from 'gifenc'
 import { createCanvas, get2d, flattenOnWhite, encodeBMP } from './canvas'
 
-export type SaveFormat = 'png' | 'jpg' | 'bmp' | 'gif' | 'tif'
+export type SaveFormat = 'png' | 'jpg' | 'webp' | 'bmp' | 'gif' | 'tif' | 'pdf'
 
 export const FORMAT_LABEL: Record<SaveFormat, string> = {
   png: 'PNG',
   jpg: 'JPEG',
+  webp: 'WebP',
   bmp: 'BMP',
   gif: 'GIF',
-  tif: 'TIFF'
+  tif: 'TIFF',
+  pdf: 'PDF'
 }
 
 export function formatFromFilename(name: string): SaveFormat {
   const ext = name.split('.').pop()?.toLowerCase() ?? ''
   if (ext === 'jpg' || ext === 'jpeg') return 'jpg'
+  if (ext === 'webp') return 'webp'
+  if (ext === 'pdf') return 'pdf'
   if (ext === 'bmp') return 'bmp'
   if (ext === 'gif') return 'gif'
   if (ext === 'tif' || ext === 'tiff') return 'tif'
@@ -25,7 +29,7 @@ export function defaultExtension(format: SaveFormat): string {
   return format === 'tif' ? 'tif' : format
 }
 
-export async function encodeCanvas(canvas: HTMLCanvasElement, format: SaveFormat): Promise<Uint8Array> {
+export async function encodeCanvas(canvas: HTMLCanvasElement, format: SaveFormat, dpi = 96): Promise<Uint8Array> {
   if (format === 'png') {
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'))
     if (!blob) throw new Error('PNG encoding failed')
@@ -37,8 +41,24 @@ export async function encodeCanvas(canvas: HTMLCanvasElement, format: SaveFormat
     if (!blob) throw new Error('JPEG encoding failed')
     return new Uint8Array(await blob.arrayBuffer())
   }
+  if (format === 'webp') {
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/webp', 0.95))
+    if (!blob) throw new Error('WebP encoding failed')
+    return new Uint8Array(await blob.arrayBuffer())
+  }
   if (format === 'bmp') {
     return encodeBMP(canvas)
+  }
+  if (format === 'pdf') {
+    const png = await encodeCanvas(canvas, 'png')
+    const { PDFDocument } = await import('pdf-lib')
+    const doc = await PDFDocument.create()
+    const image = await doc.embedPng(png)
+    const widthPt = Math.max(1, Math.min(14400, (canvas.width / Math.max(1, dpi)) * 72))
+    const heightPt = Math.max(1, Math.min(14400, (canvas.height / Math.max(1, dpi)) * 72))
+    const page = doc.addPage([widthPt, heightPt])
+    page.drawImage(image, { x: 0, y: 0, width: widthPt, height: heightPt })
+    return await doc.save()
   }
   if (format === 'tif') {
     const width = canvas.width
@@ -63,7 +83,13 @@ export async function encodeCanvas(canvas: HTMLCanvasElement, format: SaveFormat
 
 export async function decodeImageFile(data: Uint8Array, name: string): Promise<HTMLCanvasElement> {
   const ext = name.split('.').pop()?.toLowerCase() ?? ''
-  if (ext === 'tif' || ext === 'tiff') {
+  const isTiff =
+    ext === 'tif' ||
+    ext === 'tiff' ||
+    (data.length > 4 &&
+      ((data[0] === 0x49 && data[1] === 0x49 && data[2] === 0x2a && data[3] === 0x00) ||
+        (data[0] === 0x4d && data[1] === 0x4d && data[2] === 0x00 && data[3] === 0x2a)))
+  if (isTiff) {
     const buffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength)
     const ifds = UTIF.decode(buffer as ArrayBuffer)
     if (!ifds.length) throw new Error('TIFF konnte nicht gelesen werden')
@@ -85,7 +111,13 @@ export async function decodeImageFile(data: Uint8Array, name: string): Promise<H
           ? 'image/gif'
           : ext === 'webp'
             ? 'image/webp'
-            : 'image/png'
+            : ext === 'avif'
+              ? 'image/avif'
+              : ext === 'ico'
+                ? 'image/x-icon'
+                : ext === 'pdf'
+                  ? 'application/pdf'
+                  : 'image/png'
   const blob = new Blob([data as BlobPart], { type: mime })
   const bitmap = await createImageBitmap(blob)
   const canvas = createCanvas(bitmap.width, bitmap.height)

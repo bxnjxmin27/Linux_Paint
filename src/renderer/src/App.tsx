@@ -7,6 +7,7 @@ import { CanvasView } from './components/CanvasView'
 import { LayersPane } from './components/LayersPane'
 import { StatusBar } from './components/StatusBar'
 import { Dialogs } from './components/Dialogs'
+import { PdfImportDialog } from './components/PdfImportDialog'
 import { ResizeHandles } from './components/ResizeHandles'
 import { controller } from './engine/controller'
 import { useUI } from './state/store'
@@ -249,6 +250,7 @@ export default function App(): React.ReactElement {
       </div>
       <StatusBar />
       <Dialogs />
+      <PdfImportDialog />
       <ResizeHandles />
     </div>
   )
